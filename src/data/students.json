@@ -1,0 +1,49 @@
+{
+  "students": [
+    {
+      "id": 1,
+      "name": "Student Name 1",
+      "hometown": "City, State",
+      "year": "Freshman",
+      "majors": ["Major 1"],
+      "minors": ["Minor 1"],
+      "bio": "Placeholder bio for student 1. Add a short description here about interests, involvement, and goals."
+    },
+    {
+      "id": 2,
+      "name": "Student Name 2",
+      "hometown": "City, State",
+      "year": "Sophomore",
+      "majors": ["Major 1", "Major 2"],
+      "minors": [],
+      "bio": "Placeholder bio for student 2. Add a short description here about interests, involvement, and goals."
+    },
+    {
+      "id": 3,
+      "name": "Student Name 3",
+      "hometown": "City, State",
+      "year": "Junior",
+      "majors": ["Major 1"],
+      "minors": ["Minor 1", "Minor 2"],
+      "bio": "Placeholder bio for student 3. Add a short description here about interests, involvement, and goals."
+    },
+    {
+      "id": 4,
+      "name": "Student Name 4",
+      "hometown": "City, State",
+      "year": "Senior",
+      "majors": ["Major 1"],
+      "minors": ["Minor 1"],
+      "bio": "Placeholder bio for student 4. Add a short description here about interests, involvement, and goals."
+    },
+    {
+      "id": 5,
+      "name": "Student Name 5",
+      "hometown": "City, State",
+      "year": "Graduate",
+      "majors": ["Major 1", "Major 2"],
+      "minors": ["Minor 1"],
+      "bio": "Placeholder bio for student 5. Add a short description here about interests, involvement, and goals."
+    }
+  ]
+}
