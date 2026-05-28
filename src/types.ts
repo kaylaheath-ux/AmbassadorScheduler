@@ -1,11 +1,9 @@
+// represents a single student
 export interface Student {
-  id: number;
+  id: string; // ncsu unity id, email is unityid@ncsu.edu
   name: string;
-  hometown: string;
-  year: string;
   majors: string[];
   minors: string[];
-  bio: string;
 }
 
 export interface StudentsData {
