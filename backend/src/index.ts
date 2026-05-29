@@ -1,5 +1,5 @@
 import express from 'express';
-import studentsRouter from './routes/students';
+import studentsRouter from './routes/students.js';
 
 // creates the main server that receives all requests
 const app = express();

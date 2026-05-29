@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
-import studentsData from '../data/students.json';
-import type { Student, StudentsData } from '../types';
+import studentsData from '../data/students.json' with { type: 'json' };
+import type { Student, StudentsData } from '../types.js';
 
 // converts json data to StudentsData object and gets the 
 // array of students
