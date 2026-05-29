@@ -5,4 +5,4 @@ dist-ssr
 .env
 .env.local
 
-/generated/prisma
+backend/generated/prisma
