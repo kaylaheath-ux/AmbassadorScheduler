@@ -11,5 +11,8 @@
     "dev": "npm run dev -w backend & npm run dev -w frontend",
     "backend": "npm run dev -w backend",
     "frontend": "npm run dev -w frontend"
+  },
+  "devDependencies": {
+    "prisma": "^7.8.0"
   }
 }
