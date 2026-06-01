@@ -1,41 +1,44 @@
 import { Router, type Request, type Response } from 'express';
-import studentsData from '../data/students.json' with { type: 'json' };
-import type { Student, StudentsData } from '../types.js';
-
-// converts json data to StudentsData object and gets the 
-// array of students
-const students: Student[] = (studentsData as StudentsData).students;
+import { prisma } from '../lib/prisma.js';
 
 // create a router for communication
 // creates a mini-app that can be attached to main server to handle
 // a subset of requests
 const router = Router();
 
-// declaring the first API endpoint, GET
-// defining HTTP GET route on the root path, /
-// the second parameter, the handler runs whenever a client sends a
-// get request to that URL. 
-// req and res, the two parameters for the handler, represent the
-// incoming request and outgoing response
-// no request data is needed, so req unused
-// the handler sends the student array in json format as the response
-router.get('/', (_req: Request, res: Response) => {
-  res.json(students);
+// GET /students — return every student.
+// Handlers are now async because talking to the database returns a Promise:
+// prisma.student.findMany() runs `SELECT * FROM "Student"` and we await the rows.
+router.get('/', async (_req: Request, res: Response) => {
+  try {
+    const students = await prisma.student.findMany();
+    res.json(students);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'failed to fetch students' });
+  }
 });
 
-// second API endpoint - when a user specifies and id to search up
-router.get('/:id', (req: Request, res: Response) => {
-  // saving the id parameter from the request
+// GET /students/:id — return one student by unity id.
+// findUnique looks the row up by primary key and returns null if there's no match.
+router.get('/:id', async (req: Request, res: Response) => {
   const id = req.params.id;
-  // finds the student with the matching id
-  const student = students.find((s) => s.id === id);
-  // if no student, 404 not found and error as json format for response
-  if (!student) {
-    // return to exit cleanly because of 2 branches
-    return res.status(404).json({ error: `student with id ${id} not found` });
+  // Express types the param as string | string[] | undefined; the DB lookup
+  // needs a single string, so narrow it before querying.
+  if (typeof id !== 'string') {
+    return res.status(400).json({ error: 'invalid id' });
   }
-  // return the student in json format
-  return res.json(student);
+  try {
+    const student = await prisma.student.findUnique({ where: { id } });
+    // if no student, 404 not found and error as json format for response
+    if (!student) {
+      return res.status(404).json({ error: `student with id ${id} not found` });
+    }
+    return res.json(student);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'failed to fetch student' });
+  }
 });
 
 // exporting the router
