@@ -1,15 +1,29 @@
 {
-  "name": "ambassador-scheduler",
-  "version": "1.0.0",
-  "description": "Full-stack app for scheduling student ambassadors to events.",
+  "name": "ambassador-next",
+  "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "backend",
-    "frontend"
-  ],
   "scripts": {
-    "dev": "npm run dev -w backend & npm run dev -w frontend",
-    "backend": "npm run dev -w backend",
-    "frontend": "npm run dev -w frontend"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "next": "16.2.7",
+    "pg": "^8.21.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.7",
+    "prisma": "^7.8.0",
+    "typescript": "^5"
   }
 }
