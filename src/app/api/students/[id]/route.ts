@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /students/:id — return one student by unity id.
+// GET /api/students/:id — return one student by unity id.
 // Replaces the Express `GET /students/:id` route. In the App Router the dynamic
 // segment comes from the second argument's `params`, which is a Promise.
 export async function GET(

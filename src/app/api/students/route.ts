@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /students — return every student.
+// GET /api/students — return every student.
 // Replaces the Express `GET /students` route. Route handlers receive a Web
 // Request and return a Web Response; NextResponse.json() is the equivalent of
 // Express's res.json().
