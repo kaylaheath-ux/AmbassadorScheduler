@@ -9,14 +9,21 @@ import {
   AlarmClock,
   Users,
   Mail,
-  ChevronDown,
 } from "lucide-react";
+import type { Role } from "@/lib/demo-auth";
+import { useDemoAuth } from "./DemoAuthProvider";
+import RoleSwitcher from "./RoleSwitcher";
 import styles from "./Sidebar.module.css";
 
 // Nav items mirror the Figma design. Icons are the closest lucide equivalents
-// of the custom icons in the mockup. Only "/" (Dashboard) has a page so far —
-// the others are placeholders until those routes are built.
-const NAV_ITEMS = [
+// of the custom icons in the mockup. `roles` (optional) restricts an item to
+// certain roles; omit it to show the item to everyone.
+const NAV_ITEMS: {
+  label: string;
+  href: string;
+  Icon: typeof BarChart3;
+  roles?: Role[];
+}[] = [
   { label: "Dashboard", href: "/", Icon: BarChart3 },
   { label: "Calendar", href: "/calendar", Icon: Calendar },
   { label: "Time", href: "/time", Icon: AlarmClock },
@@ -26,6 +33,10 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { role } = useDemoAuth();
+  const navItems = NAV_ITEMS.filter(
+    (item) => !item.roles || item.roles.includes(role),
+  );
 
   return (
     <aside className={styles.sidebar}>
@@ -39,7 +50,7 @@ export default function Sidebar() {
       />
 
       <nav className={styles.nav}>
-        {NAV_ITEMS.map(({ label, href, Icon }) => {
+        {navItems.map(({ label, href, Icon }) => {
           // Highlight on the exact route and any nested route (e.g. Directory
           // stays active on /directory/kaheath). The "/" Dashboard only matches
           // exactly, so it doesn't light up for every page.
@@ -59,10 +70,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className={styles.account}>
-        Kayla Heath
-        <ChevronDown size={24} strokeWidth={2} aria-hidden />
-      </div>
+      <RoleSwitcher />
     </aside>
   );
 }

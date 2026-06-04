@@ -10,7 +10,7 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
-    const student = await prisma.student.findUnique({ where: { id } });
+    const student = await prisma.user.findUnique({ where: { id } });
     if (!student) {
       return NextResponse.json(
         { error: `student with id ${id} not found` },

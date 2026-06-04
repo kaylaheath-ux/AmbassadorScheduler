@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 // Directory page (/directory). As an async Server Component it queries Prisma
 // directly on the server during render — no API call, no client-side fetching.
 export default async function DirectoryPage() {
-  const students = await prisma.student.findMany({ orderBy: { name: "asc" } });
+  // Only ambassadors appear in the directory — coordinators run the program.
+  const students = await prisma.user.findMany({
+    where: { role: "AMBASSADOR" },
+    orderBy: { name: "asc" },
+  });
 
   return (
     <div style={{ maxWidth: 640, margin: "0 auto", padding: "2rem 1.5rem" }}>

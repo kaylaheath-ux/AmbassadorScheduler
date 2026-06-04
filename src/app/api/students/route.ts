@@ -7,7 +7,9 @@ import { prisma } from "@/lib/prisma";
 // Express's res.json().
 export async function GET() {
   try {
-    const students = await prisma.student.findMany();
+    const students = await prisma.user.findMany({
+      where: { role: "AMBASSADOR" },
+    });
     return NextResponse.json(students);
   } catch (err) {
     console.error(err);

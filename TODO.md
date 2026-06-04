@@ -13,12 +13,15 @@ Stack: Next.js (App Router) · Prisma · Supabase (Postgres).
 For now, skip real authentication. Use a simple role switcher so we can build and
 test both experiences. Replace with university SSO (`@ncsu.edu`) later.
 
-- [ ] Add a role concept: `Ambassador` | `Coordinator`.
-- [ ] Build a demo "Sign in" / role-select screen: pick **Administrator** or **Student**.
-- [ ] Persist the selected role + a demo user (cookie, or React context + localStorage).
-- [ ] Add a way to switch roles quickly (e.g. in the sidebar account dropdown).
-- [ ] Gate pages/nav by role (coordinators see admin pages; ambassadors don't).
-- [ ] Seed a few demo users of each role for selection.
+- [x] Add a role concept: `Ambassador` | `Coordinator`. (`src/lib/demo-auth.ts`)
+- [x] Persist the selected role + a demo user (cookie + React context).
+- [x] Add a way to switch roles quickly — role switcher dropdown replaced the
+      sidebar account placeholder (`RoleSwitcher` / `DemoAuthProvider`).
+- [x] Seed a few demo users of each role for selection.
+- [x] Nav supports role gating (`NAV_ITEMS[].roles`); all current pages show to
+      both roles until admin pages exist.
+- [ ] Optional: a dedicated landing "Sign in" / role-select screen (the sidebar
+      switcher currently covers selecting + switching).
 
 > Later: replace demo mode with real SSO / email-domain-restricted auth.
 
@@ -28,15 +31,15 @@ test both experiences. Replace with university SSO (`@ncsu.edu`) later.
 
 Evolve the current minimal `Student` model into a fuller schema.
 
-- [ ] `User` — extend/replace `Student`: `id, name, email, role, year, majors[],
-      minors[], photoUrl, phone`.
-- [ ] `Event` — `id, title, type, location, startsAt, endsAt, capacity, points,
+- [x] `User` — replaced `Student`: `id, name, email, role, photoUrl, phone`.
+- [x] `Event` — `id, title, type, location, startsAt, endsAt, capacity, points,
       description, createdById`.
-- [ ] `Signup` — `id, userId, eventId, status (confirmed | waitlisted | cancelled),
+- [x] `Signup` — `id, userId, eventId, status (confirmed | waitlisted | cancelled),
       createdAt`.
-- [ ] `HourLog` — `id, userId, eventId, checkIn, checkOut, approved, approvedById`.
-- [ ] `Announcement` — `id, authorId, body, audience, createdAt`.
-- [ ] Run migration + add a seed script with demo users, events, and signups.
+- [x] `HourLog` — `id, userId, eventId, checkIn, checkOut, approved, approvedById`.
+- [x] `Announcement` — `id, authorId, body, audience, createdAt`.
+- [x] Run migration + add a seed script with demo users, events, and signups
+      (`prisma/seed.ts`, `npm run db:seed`).
 
 ---
 
@@ -49,7 +52,6 @@ This is the whole point of the app — build it right after the schema.
 - [ ] **Event detail page** (`/events/[id]`): full info + roster.
 - [ ] **Sign up / Drop** actions, with capacity enforcement.
 - [ ] **Waitlist** when an event is full; auto-promote when a slot opens.
-- [ ] Major-based prioritization (e.g. CS open house highlights CS ambassadors).
 
 ---
 
@@ -79,7 +81,7 @@ This is the whole point of the app — build it right after the schema.
 
 ## 6. Directory (exists — extend it)
 
-- [ ] Add to profiles: availability, contact info, year, total hours, reliability.
+- [ ] Add to profiles: availability, contact info, total hours, reliability.
 - [ ] Profile photos.
 - [ ] Make `/directory/[id]` show signups + hours history.
 

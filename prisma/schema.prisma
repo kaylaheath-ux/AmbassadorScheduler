@@ -7,9 +7,97 @@ datasource db {
   provider = "postgresql"
 }
 
-model Student {
-  id     String @id
-  name   String
-  majors String[]
-  minors String[]
+// Demo mode has two roles. Coordinators run the program (create events, approve
+// hours); ambassadors are the students who sign up for events.
+enum Role {
+  AMBASSADOR
+  COORDINATOR
+}
+
+enum EventType {
+  TOUR
+  OPEN_HOUSE
+  INFO_SESSION
+  TABLING
+  PANEL
+  OTHER
+}
+
+enum SignupStatus {
+  CONFIRMED
+  WAITLISTED
+  CANCELLED
+}
+
+// Replaces the old `Student` model. `id` is the NC State unity id (e.g. "kaheath")
+// for ambassadors, or a staff id for coordinators.
+model User {
+  id       String   @id
+  name     String
+  email    String   @unique
+  role     Role     @default(AMBASSADOR)
+  photoUrl String?
+  phone    String?
+
+  signups       Signup[]
+  hourLogs      HourLog[]      @relation("UserHourLogs")
+  approvedLogs  HourLog[]      @relation("ApprovedByUser")
+  createdEvents Event[]        @relation("CreatedEvents")
+  announcements Announcement[]
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  type        EventType @default(OTHER)
+  location    String
+  startsAt    DateTime
+  endsAt      DateTime
+  capacity    Int
+  points      Int       @default(0)
+  description String?
+  createdById String?
+  createdBy   User?     @relation("CreatedEvents", fields: [createdById], references: [id])
+
+  signups  Signup[]
+  hourLogs HourLog[]
+}
+
+model Signup {
+  id        String       @id @default(cuid())
+  userId    String
+  eventId   String
+  status    SignupStatus @default(CONFIRMED)
+  createdAt DateTime     @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+
+  // A user can only hold one signup per event.
+  @@unique([userId, eventId])
+}
+
+model HourLog {
+  id           String    @id @default(cuid())
+  userId       String
+  eventId      String
+  checkIn      DateTime?
+  checkOut     DateTime?
+  approved     Boolean   @default(false)
+  approvedById String?
+
+  user       User  @relation("UserHourLogs", fields: [userId], references: [id])
+  approvedBy User? @relation("ApprovedByUser", fields: [approvedById], references: [id])
+  event      Event @relation(fields: [eventId], references: [id])
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  authorId  String
+  body      String
+  // "ALL" for everyone, or a Role name to target ambassadors/coordinators.
+  audience  String   @default("ALL")
+  createdAt DateTime @default(now())
+
+  author User @relation(fields: [authorId], references: [id])
 }

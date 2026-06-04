@@ -48,11 +48,76 @@
 }
 
 .account {
+  position: relative;
+  width: 100%;
+  padding: 0 1.5rem;
+}
+
+/* The current-persona button that opens the role menu. */
+.accountButton {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.625rem;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font: inherit;
   font-weight: 500;
   font-size: 1.25rem;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Secondary line showing the persona's name under the role label. */
+.roleName {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+/* Pop-up menu listing the selectable roles, anchored above the button. */
+.roleMenu {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 1.5rem;
+  right: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem;
+  background: #ffffff;
+  color: #1a1a1a;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 10;
+}
+
+.roleOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 0.5rem 0.625rem;
+  border-radius: 6px;
+  color: #1a1a1a;
+}
+
+.roleOption:hover {
+  background: #f1f1f1;
+}
+
+.roleOption .roleName {
+  color: #666;
+  opacity: 1;
 }
 
 /* Responsive: collapse the full-height rail into a top bar on small screens */

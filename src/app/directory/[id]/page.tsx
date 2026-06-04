@@ -10,7 +10,7 @@ export default async function StudentPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const student = await prisma.student.findUnique({ where: { id } });
+  const student = await prisma.user.findUnique({ where: { id } });
 
   // No matching row → render Next.js's not-found UI (a 404 response).
   if (!student) {
@@ -27,15 +27,8 @@ export default async function StudentPage({
       </h1>
       <p style={{ color: "#666", marginTop: 0 }}>{student.id}</p>
 
-      <h2 style={{ fontSize: "1rem", marginBottom: "0.25rem" }}>Majors</h2>
-      <p style={{ marginTop: 0 }}>
-        {student.majors.length ? student.majors.join(", ") : "—"}
-      </p>
-
-      <h2 style={{ fontSize: "1rem", marginBottom: "0.25rem" }}>Minors</h2>
-      <p style={{ marginTop: 0 }}>
-        {student.minors.length ? student.minors.join(", ") : "—"}
-      </p>
+      <h2 style={{ fontSize: "1rem", marginBottom: "0.25rem" }}>Email</h2>
+      <p style={{ marginTop: 0 }}>{student.email}</p>
     </main>
   );
 }
