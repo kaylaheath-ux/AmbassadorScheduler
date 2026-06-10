@@ -1,0 +1,63 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.dow {
+  background: var(--surface);
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.cell {
+  background: #fff;
+  min-height: 96px;
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cellEmpty {
+  background: #fbfbfb;
+}
+
+.dayNum {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.today {
+  align-self: flex-start;
+  background: var(--wolfpack-red);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+  font-weight: 600;
+}
+
+.pill {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  padding: 0.2rem 0.35rem;
+  border-radius: 5px;
+  background: #e7f0fd;
+  color: #1a56c4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pillMine {
+  background: #fde8ea;
+  color: var(--wolfpack-red);
+}

@@ -47,7 +47,6 @@ const EVENTS = [
     startsAt: new Date("2026-09-12T14:00:00-04:00"),
     endsAt: new Date("2026-09-12T16:00:00-04:00"),
     capacity: 4,
-    points: 2,
     description: "Guided walking tour for prospective CS students and families.",
   },
   {
@@ -57,7 +56,6 @@ const EVENTS = [
     startsAt: new Date("2026-09-20T10:00:00-04:00"),
     endsAt: new Date("2026-09-20T13:00:00-04:00"),
     capacity: 6,
-    points: 3,
     description: "Department open house. Staff tables, demos, and Q&A.",
   },
   {
@@ -67,7 +65,6 @@ const EVENTS = [
     startsAt: new Date("2026-10-03T13:00:00-04:00"),
     endsAt: new Date("2026-10-03T14:30:00-04:00"),
     capacity: 3,
-    points: 2,
     description: "Panel + audience questions for admitted students.",
   },
 ];
@@ -102,6 +99,27 @@ async function main() {
     data: { userId: "jsmith", eventId: created[0].id, status: "CONFIRMED" },
   });
 
+  // A completed, approved event clock for Kayla (1h40m), and a pending task-hours
+  // request, so the Time and Approvals views have data on day one.
+  await prisma.hourLog.create({
+    data: {
+      userId: "kaheath",
+      eventId: created[0].id,
+      checkIn: new Date("2026-09-12T14:05:00-04:00"),
+      checkOut: new Date("2026-09-12T15:45:00-04:00"),
+      status: "APPROVED",
+      approvedById: "pcoord",
+    },
+  });
+  await prisma.hourLog.create({
+    data: {
+      userId: "kaheath",
+      description: "Wrote welcome letters to 12 admitted students",
+      minutes: 45,
+      status: "PENDING",
+    },
+  });
+
   await prisma.announcement.create({
     data: {
       authorId: "pcoord",
@@ -111,7 +129,7 @@ async function main() {
   });
 
   console.log(
-    `Seeded ${USERS.length} users, ${created.length} events, 3 signups, 1 announcement.`,
+    `Seeded ${USERS.length} users, ${created.length} events, 3 signups, 2 hour logs, 1 announcement.`,
   );
 }
 

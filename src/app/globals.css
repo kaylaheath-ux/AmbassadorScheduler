@@ -42,8 +42,161 @@ a {
   text-decoration: none;
 }
 
+/* The app content is a light surface regardless of OS theme, so the seeded
+   white cards and dark text stay legible. */
+:root {
+  color-scheme: light;
+  --wolfpack-red: #cc0000;
+  --ink: #1a1a1a;
+  --muted: #666;
+  --line: #e2e2e2;
+  --surface: #f7f7f8;
+}
+
+/* ---- Shared layout/util classes used across pages ---- */
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+  color: var(--ink);
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.pageHeader h1 {
+  font-size: 1.75rem;
+}
+
+.pageHeader p {
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  background: #fff;
+}
+
+.cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.rowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.badge-green { background: #e6f4ea; color: #1e7e34; }
+.badge-amber { background: #fdf1dc; color: #9a6700; }
+.badge-red   { background: #fde8e8; color: #b42318; }
+.badge-gray  { background: #eee; color: #555; }
+.badge-blue  { background: #e7f0fd; color: #1a56c4; }
+
+/* Buttons (also usable on <button> inside forms) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font: inherit;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.12s ease, opacity 0.12s ease;
+}
+.btn:hover { background: #f3f3f3; }
+.btn-primary {
+  background: var(--wolfpack-red);
+  border-color: var(--wolfpack-red);
+  color: #fff;
+}
+.btn-primary:hover { background: #a30000; }
+.btn-danger {
+  background: #fff;
+  border-color: #e0b4b4;
+  color: #b42318;
+}
+.btn-danger:hover { background: #fdf1f1; }
+.btn-sm { padding: 0.35rem 0.7rem; font-size: 0.875rem; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Forms */
+.field { display: grid; gap: 0.3rem; margin-bottom: 0.9rem; }
+.field label { font-weight: 500; font-size: 0.9375rem; }
+.input,
+.select,
+.textarea {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  width: 100%;
+}
+.textarea { min-height: 90px; resize: vertical; }
+
+.empty {
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  padding: 2rem 1.25rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.tableWrap { overflow-x: auto; }
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+table.data th,
+table.data td {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+table.data th { color: var(--muted); font-weight: 600; }
+
 @media (prefers-color-scheme: dark) {
   html {
-    color-scheme: dark;
+    color-scheme: light;
   }
 }

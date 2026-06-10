@@ -21,7 +21,7 @@
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 1.1rem;
   width: 100%;
   padding: 0 1.5rem;
 }

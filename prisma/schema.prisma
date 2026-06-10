@@ -29,6 +29,12 @@ enum SignupStatus {
   CANCELLED
 }
 
+enum HourLogStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // Replaces the old `Student` model. `id` is the NC State unity id (e.g. "kaheath")
 // for ambassadors, or a staff id for coordinators.
 model User {
@@ -54,7 +60,6 @@ model Event {
   startsAt    DateTime
   endsAt      DateTime
   capacity    Int
-  points      Int       @default(0)
   description String?
   createdById String?
   createdBy   User?     @relation("CreatedEvents", fields: [createdById], references: [id])
@@ -77,18 +82,26 @@ model Signup {
   @@unique([userId, eventId])
 }
 
+// An entry of credited time. Two kinds:
+//  - Event hours: `eventId` set, time = checkOut − checkIn (live clock in/out).
+//  - Task hours:  no event; `description` + manual `minutes` requested by the
+//    ambassador (e.g. writing letters to students).
+// Either kind starts PENDING and a coordinator approves or rejects it.
 model HourLog {
-  id           String    @id @default(cuid())
+  id           String        @id @default(cuid())
   userId       String
-  eventId      String
+  eventId      String?
+  description  String?
   checkIn      DateTime?
   checkOut     DateTime?
-  approved     Boolean   @default(false)
+  minutes      Int?
+  status       HourLogStatus @default(PENDING)
   approvedById String?
+  createdAt    DateTime      @default(now())
 
-  user       User  @relation("UserHourLogs", fields: [userId], references: [id])
-  approvedBy User? @relation("ApprovedByUser", fields: [approvedById], references: [id])
-  event      Event @relation(fields: [eventId], references: [id])
+  user       User   @relation("UserHourLogs", fields: [userId], references: [id])
+  approvedBy User?  @relation("ApprovedByUser", fields: [approvedById], references: [id])
+  event      Event? @relation(fields: [eventId], references: [id])
 }
 
 model Announcement {
