@@ -13,7 +13,8 @@ import {
 // components and server actions use this as the "current user". Uses next/headers
 // so it is server-only. Replace with a real session lookup when SSO lands.
 
-export async function getCurrentRole(): Promise<Role> {
+// Internal: read just the role from the cookie. getCurrentUser is the public API.
+async function getCurrentRole(): Promise<Role> {
   const store = await cookies();
   const value = store.get(ROLE_COOKIE)?.value;
   return isRole(value) ? value : DEFAULT_ROLE;

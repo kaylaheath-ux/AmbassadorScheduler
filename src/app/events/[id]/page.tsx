@@ -115,12 +115,14 @@ export default async function EventDetailPage({
       )}
 
       {isCoordinator && (
-        <form
-          action={deleteEvent.bind(null, event.id)}
-          style={{ marginTop: "1rem" }}
-        >
-          <button className="btn btn-danger">Delete event</button>
-        </form>
+        <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+          <Link href={`/events/${event.id}/edit`} className="btn">
+            Edit event
+          </Link>
+          <form action={deleteEvent.bind(null, event.id)}>
+            <button className="btn btn-danger">Delete event</button>
+          </form>
+        </div>
       )}
     </div>
   );

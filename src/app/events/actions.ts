@@ -1,10 +1,11 @@
 "use server";
 
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/demo-session";
-import type { EventType } from "@/generated/prisma/enums";
+import { eventSchema, type EventFormState } from "./schema";
 
 function refreshEventViews(eventId?: string) {
   revalidatePath("/events");
@@ -72,30 +73,45 @@ export async function dropSignup(eventId: string) {
   refreshEventViews(eventId);
 }
 
-// Coordinator: create an event from the /events/new form, then go to its page.
-export async function createEvent(formData: FormData) {
+// Pull the event fields out of FormData and validate them with Zod. Returns the
+// clean, typed values on success, or per-field error messages on failure.
+function parseEventForm(formData: FormData) {
+  return eventSchema.safeParse({
+    title: formData.get("title") ?? "",
+    type: formData.get("type") ?? "",
+    location: formData.get("location") ?? "",
+    startsAt: formData.get("startsAt") ?? "",
+    endsAt: formData.get("endsAt") ?? "",
+    capacity: formData.get("capacity") ?? "",
+    description: formData.get("description") ?? "",
+  });
+}
+
+// Coordinator: create an event from the /events/new form. Shaped for
+// useActionState — returns validation errors instead of throwing, and only
+// redirects on success.
+export async function createEvent(
+  _prev: EventFormState,
+  formData: FormData,
+): Promise<EventFormState> {
   const { user, role } = await getCurrentUser();
-  if (!user || role !== "COORDINATOR") return;
+  if (!user || role !== "COORDINATOR") return { formError: "Not authorized." };
 
-  const title = String(formData.get("title") ?? "").trim();
-  const location = String(formData.get("location") ?? "").trim();
-  const type = String(formData.get("type") ?? "OTHER") as EventType;
-  const capacity = Number(formData.get("capacity") ?? 0);
-  const startsAt = new Date(String(formData.get("startsAt")));
-  const endsAt = new Date(String(formData.get("endsAt")));
-  const description = String(formData.get("description") ?? "").trim();
-
-  if (!title || !location || Number.isNaN(startsAt.getTime())) return;
+  const parsed = parseEventForm(formData);
+  if (!parsed.success) {
+    return { errors: z.flattenError(parsed.error).fieldErrors };
+  }
+  const data = parsed.data;
 
   const event = await prisma.event.create({
     data: {
-      title,
-      location,
-      type,
-      capacity: Number.isFinite(capacity) ? capacity : 0,
-      startsAt,
-      endsAt: Number.isNaN(endsAt.getTime()) ? startsAt : endsAt,
-      description: description || null,
+      title: data.title,
+      type: data.type,
+      location: data.location,
+      capacity: data.capacity,
+      startsAt: data.startsAt,
+      endsAt: data.endsAt,
+      description: data.description || null,
       createdById: user.id,
     },
   });
@@ -104,14 +120,52 @@ export async function createEvent(formData: FormData) {
   redirect(`/events/${event.id}`);
 }
 
-// Coordinator: delete an event (cascades signups/hour logs are detached).
+// Coordinator: edit an existing event. Same validation as create; the event id
+// rides along in a hidden form field.
+export async function updateEvent(
+  _prev: EventFormState,
+  formData: FormData,
+): Promise<EventFormState> {
+  const { user, role } = await getCurrentUser();
+  if (!user || role !== "COORDINATOR") return { formError: "Not authorized." };
+
+  const id = z.string().min(1).safeParse(formData.get("id"));
+  if (!id.success) return { formError: "Missing event id." };
+
+  const parsed = parseEventForm(formData);
+  if (!parsed.success) {
+    return { errors: z.flattenError(parsed.error).fieldErrors };
+  }
+  const data = parsed.data;
+
+  await prisma.event.update({
+    where: { id: id.data },
+    data: {
+      title: data.title,
+      type: data.type,
+      location: data.location,
+      capacity: data.capacity,
+      startsAt: data.startsAt,
+      endsAt: data.endsAt,
+      description: data.description || null,
+    },
+  });
+
+  refreshEventViews(id.data);
+  redirect(`/events/${id.data}`);
+}
+
+// Coordinator: delete an event. The id is validated before we touch the DB.
 export async function deleteEvent(eventId: string) {
   const { user, role } = await getCurrentUser();
   if (!user || role !== "COORDINATOR") return;
 
+  const id = z.string().min(1).safeParse(eventId);
+  if (!id.success) return;
+
   // Remove dependent signups first; hour logs keep their (now-null) eventId.
-  await prisma.signup.deleteMany({ where: { eventId } });
-  await prisma.event.delete({ where: { id: eventId } });
+  await prisma.signup.deleteMany({ where: { eventId: id.data } });
+  await prisma.event.delete({ where: { id: id.data } });
 
   refreshEventViews();
   redirect("/events");

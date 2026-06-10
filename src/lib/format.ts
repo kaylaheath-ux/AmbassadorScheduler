@@ -39,6 +39,16 @@ export function easternYMD(d: Date): { year: number; month: number; day: number 
   return { year: get("year"), month: get("month"), day: get("day") };
 }
 
+// Format a Date as the "YYYY-MM-DDTHH:mm" value an <input type="datetime-local">
+// expects, for prefilling the edit form. Uses the server's local wall-clock,
+// which round-trips with how `new Date("...")` parses the same input on submit.
+export function toDateTimeLocalValue(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours(),
+  )}:${pad(d.getMinutes())}`;
+}
+
 // Minutes → "1h 40m" / "45m" / "2h".
 export function formatDuration(totalMinutes: number): string {
   const m = Math.max(0, Math.round(totalMinutes));

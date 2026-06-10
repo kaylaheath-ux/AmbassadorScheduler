@@ -73,8 +73,12 @@ Read these three together as one story — it teaches the entire request lifecyc
 - [ ] `src/app/events/actions.ts` — the **server actions** (`"use server"`),
       where the form submits go. Read `signUpForEvent` and `dropSignup` slowly:
       capacity check, waitlist, promotion logic, then `revalidatePath`.
-- [ ] `src/app/events/[id]/page.tsx` and `src/app/events/new/page.tsx` —
-      detail/roster + the create form.
+- [ ] `src/app/events/[id]/page.tsx`, `src/app/events/new/page.tsx`, and
+      `src/app/events/[id]/edit/page.tsx` — detail/roster + the create/edit forms.
+- [ ] `src/app/events/schema.ts` + `src/components/EventForm.tsx` — the **Zod**
+      validation schema and the shared client form that renders per-field errors
+      via React 19's `useActionState`. Good example of validation + the
+      server-action-with-state pattern.
 
 **Trace one click:** press "Sign up" → which function runs → what changes in the
 DB → why does the page update? Once that click makes sense, the whole app does.
@@ -112,8 +116,9 @@ and spot differences.
 Jot down anything that fits these — it sharpens your eye and gives us a punch list
 afterward:
 
-- **"Why is this here?"** — anything you can't explain the purpose of (e.g. the
-  leftover `src/app/api/students/` routes — are they even used now?).
+- **"Why is this here?"** — anything you can't explain the purpose of. (The
+  leftover `src/app/api/students/` REST routes were one such example — they've
+  since been removed since nothing called them.)
 - **Repetition** — the same code in many files (the `getCurrentUser()` +
   role-check at the top of actions; inline styles). Could it be shared?
 - **"What if…?"** — edge cases: what if two people grab the last spot at once?
