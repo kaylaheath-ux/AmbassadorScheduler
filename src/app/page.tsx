@@ -1,12 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 import { formatDuration, formatEventWhen, hourLogMinutes } from "@/lib/format";
 
 // Dashboard ("/") — role-aware. Ambassadors see their next shift + hours;
 // coordinators see what needs attention across the program.
 export default async function DashboardPage() {
-  const { user, role, persona } = await getCurrentUser();
+  const { user, role } = await getCurrentUser();
+  if (!user) redirect("/login");
   const isCoordinator = role === "COORDINATOR";
   const now = new Date();
 
@@ -14,7 +16,7 @@ export default async function DashboardPage() {
     <div className="page">
       <div className="pageHeader">
         <div>
-          <h1>Welcome, {persona.name.split(" ")[0]}</h1>
+          <h1>Welcome, {user.name.split(" ")[0]}</h1>
           <p>
             {isCoordinator
               ? "Here's what needs your attention."

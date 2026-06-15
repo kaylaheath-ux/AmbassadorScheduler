@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 import { EVENT_TYPE_LABEL } from "@/lib/events";
 import { formatEventWhen } from "@/lib/format";
+import ConfirmSubmit from "@/components/ConfirmSubmit";
 import { signUpForEvent, dropSignup, deleteEvent } from "../actions";
 
 export default async function EventDetailPage({
@@ -13,6 +14,7 @@ export default async function EventDetailPage({
 }) {
   const { id } = await params;
   const { user, role } = await getCurrentUser();
+  if (!user) redirect("/login");
   const isCoordinator = role === "COORDINATOR";
 
   const event = await prisma.event.findUnique({
@@ -88,10 +90,10 @@ export default async function EventDetailPage({
       ) : (
         <div className="stack" style={{ marginBottom: "1.5rem" }}>
           {confirmed.map((s) => (
-            <div key={s.id} className="card rowBetween">
+            <Link key={s.id} href={`/directory/${s.user.id}`} className="card rowBetween">
               <span>{s.user.name}</span>
               <span className="muted">{s.user.email}</span>
-            </div>
+            </Link>
           ))}
         </div>
       )}
@@ -103,12 +105,12 @@ export default async function EventDetailPage({
           </h2>
           <div className="stack" style={{ marginBottom: "1.5rem" }}>
             {waitlisted.map((s, i) => (
-              <div key={s.id} className="card rowBetween">
+              <Link key={s.id} href={`/directory/${s.user.id}`} className="card rowBetween">
                 <span>
                   #{i + 1} {s.user.name}
                 </span>
                 <span className="muted">{s.user.email}</span>
-              </div>
+              </Link>
             ))}
           </div>
         </>
@@ -120,7 +122,12 @@ export default async function EventDetailPage({
             Edit event
           </Link>
           <form action={deleteEvent.bind(null, event.id)}>
-            <button className="btn btn-danger">Delete event</button>
+            <ConfirmSubmit
+              message={`Delete "${event.title}"? This removes all signups.`}
+              className="btn btn-danger"
+            >
+              Delete event
+            </ConfirmSubmit>
           </form>
         </div>
       )}

@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 import { EVENT_TYPE_LABEL } from "@/lib/events";
 import { formatEventWhen } from "@/lib/format";
 import { dropSignup } from "../events/actions";
@@ -10,14 +11,7 @@ const CANCEL_CUTOFF_HOURS = 24;
 
 export default async function MyShiftsPage() {
   const { user } = await getCurrentUser();
-  if (!user) {
-    return (
-      <div className="page">
-        <h1>My Shifts</h1>
-        <div className="empty">No user in session.</div>
-      </div>
-    );
-  }
+  if (!user) redirect("/login");
 
   const signups = await prisma.signup.findMany({
     where: { userId: user.id },

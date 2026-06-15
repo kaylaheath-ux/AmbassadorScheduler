@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 import { EVENT_TYPE_LABEL, EVENT_TYPES } from "@/lib/events";
 import { formatEventWhen } from "@/lib/format";
 import { signUpForEvent, dropSignup } from "./actions";
@@ -14,6 +15,7 @@ export default async function EventsPage({
 }) {
   const { type, need } = await searchParams;
   const { user, role } = await getCurrentUser();
+  if (!user) redirect("/login");
   const isCoordinator = role === "COORDINATOR";
 
   const now = new Date();

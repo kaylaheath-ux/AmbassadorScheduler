@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 import EventForm from "@/components/EventForm";
 import { createEvent } from "../actions";
 

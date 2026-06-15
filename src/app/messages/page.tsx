@@ -1,5 +1,6 @@
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 import { formatDate } from "@/lib/format";
 import { postAnnouncement, deleteAnnouncement } from "./actions";
 
@@ -12,11 +13,14 @@ const AUDIENCE_LABEL: Record<string, string> = {
 // Messages (/messages): announcements feed. Coordinators post; everyone reads
 // items addressed to them.
 export default async function MessagesPage() {
-  const { role } = await getCurrentUser();
+  const { user, role } = await getCurrentUser();
+  if (!user) redirect("/login");
   const isCoordinator = role === "COORDINATOR";
 
+  // Show announcements addressed to everyone, plus those for the user's role.
+  const audiences = role ? ["ALL", role] : ["ALL"];
   const announcements = await prisma.announcement.findMany({
-    where: { OR: [{ audience: "ALL" }, { audience: role }] },
+    where: { audience: { in: audiences } },
     include: { author: true },
     orderBy: { createdAt: "desc" },
   });

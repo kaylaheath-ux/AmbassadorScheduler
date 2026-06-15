@@ -47,19 +47,20 @@ Everything else is shaped by this. Read in order:
 
 ---
 
-## Phase 2 — Who am I? (the session/auth concept)
+## Phase 2 — Who am I? (the auth concept)
 
-How the app knows your role. Small and self-contained.
+How the app knows who's signed in and what they can do. Supabase magic-link auth.
 
-- [ ] `src/lib/demo-auth.ts` — role definitions + personas. Pure data/types.
-- [ ] `src/lib/demo-session.ts` — the **server-side** "current user" (reads the
-      cookie via `cookies()`). Every page/action calls `getCurrentUser()`.
-- [ ] `src/components/DemoAuthProvider.tsx` + `src/components/RoleSwitcher.tsx` —
-      the **client-side** half. Note the `"use client"` directive — these run in
-      the browser because they use state/clicks/cookie writes.
+- [ ] `src/app/login/page.tsx` + `src/app/auth/callback/route.ts` — the login
+      flow: email → magic link → session cookie.
+- [ ] `src/lib/supabase/server.ts` + `client.ts` — the Supabase client factories
+      (server reads cookies; browser sends the magic link).
+- [ ] `middleware.ts` — refreshes the session cookie on every request.
+- [ ] `src/lib/session.ts` — `getCurrentUser()`: maps the Supabase session
+      (by email) to a Prisma `User` + `role`. Every page/action calls this.
 
-**Ask yourself:** why does the role need to be read in _two_ places (server and
-client)?
+**Ask yourself:** why does an authenticated email with no `User` row end up with
+no access — and where is that enforced?
 
 ---
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 import { toDateTimeLocalValue } from "@/lib/format";
 import EventForm from "@/components/EventForm";
 import { updateEvent } from "../../actions";

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 
 // Coordinator: post an announcement to an audience ("ALL" | "AMBASSADOR" |
 // "COORDINATOR").

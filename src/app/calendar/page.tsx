@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 import { easternYMD, formatTime } from "@/lib/format";
 import styles from "./calendar.module.css";
 
@@ -20,6 +21,7 @@ export default async function CalendarPage({
 }) {
   const { y, m, mine } = await searchParams;
   const { user } = await getCurrentUser();
+  if (!user) redirect("/login");
   const onlyMine = !!mine;
 
   const allEvents = await prisma.event.findMany({

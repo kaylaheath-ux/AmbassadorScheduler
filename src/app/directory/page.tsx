@@ -1,9 +1,15 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
 
-// Directory page (/directory). As an async Server Component it queries Prisma
-// directly on the server during render — no API call, no client-side fetching.
+// Directory page (/directory) — the roster of ambassadors. Coordinators get a
+// "New user" button and manage entries from each profile.
 export default async function DirectoryPage() {
+  const { user, role } = await getCurrentUser();
+  if (!user) redirect("/login");
+  const isCoordinator = role === "COORDINATOR";
+
   // Only ambassadors appear in the directory — coordinators run the program.
   const students = await prisma.user.findMany({
     where: { role: "AMBASSADOR" },
@@ -11,30 +17,31 @@ export default async function DirectoryPage() {
   });
 
   return (
-    <div style={{ maxWidth: 640, margin: "0 auto", padding: "2rem 1.5rem" }}>
-      <h1 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>
-        Student Ambassadors
-      </h1>
-      <ul
-        style={{ listStyle: "none", padding: 0, display: "grid", gap: "0.5rem" }}
-      >
-        {students.map((student) => (
-          <li key={student.id}>
-            <Link
-              href={`/directory/${student.id}`}
-              style={{
-                display: "block",
-                padding: "0.75rem 1rem",
-                border: "1px solid #e2e2e2",
-                borderRadius: 8,
-                textDecoration: "none",
-              }}
-            >
-              {student.name}
+    <div className="page">
+      <div className="pageHeader">
+        <div>
+          <h1>Student Ambassadors</h1>
+          <p>The ambassador roster.</p>
+        </div>
+        {isCoordinator && (
+          <Link href="/directory/new" className="btn btn-primary">
+            + New user
+          </Link>
+        )}
+      </div>
+
+      {students.length === 0 ? (
+        <div className="empty">No ambassadors yet.</div>
+      ) : (
+        <div className="stack">
+          {students.map((student) => (
+            <Link key={student.id} href={`/directory/${student.id}`} className="card rowBetween">
+              <span className="cardTitle">{student.name}</span>
+              <span className="muted">{student.email}</span>
             </Link>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

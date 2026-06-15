@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 import { eventSchema, type EventFormState } from "./schema";
 
 function refreshEventViews(eventId?: string) {
@@ -21,24 +21,28 @@ export async function signUpForEvent(eventId: string) {
   const { user } = await getCurrentUser();
   if (!user) return;
 
-  const existing = await prisma.signup.findUnique({
-    where: { userId_eventId: { userId: user.id, eventId } },
-  });
-  // Already holding a confirmed/waitlisted spot — nothing to do.
-  if (existing && existing.status !== "CANCELLED") return;
+  // Run the capacity check and the insert in one transaction so two people
+  // racing for the last slot can't both end up CONFIRMED.
+  await prisma.$transaction(async (tx) => {
+    const existing = await tx.signup.findUnique({
+      where: { userId_eventId: { userId: user.id, eventId } },
+    });
+    // Already holding a confirmed/waitlisted spot — nothing to do.
+    if (existing && existing.status !== "CANCELLED") return;
 
-  const event = await prisma.event.findUnique({ where: { id: eventId } });
-  if (!event) return;
+    const event = await tx.event.findUnique({ where: { id: eventId } });
+    if (!event) return;
 
-  const confirmed = await prisma.signup.count({
-    where: { eventId, status: "CONFIRMED" },
-  });
-  const status = confirmed < event.capacity ? "CONFIRMED" : "WAITLISTED";
+    const confirmed = await tx.signup.count({
+      where: { eventId, status: "CONFIRMED" },
+    });
+    const status = confirmed < event.capacity ? "CONFIRMED" : "WAITLISTED";
 
-  await prisma.signup.upsert({
-    where: { userId_eventId: { userId: user.id, eventId } },
-    update: { status },
-    create: { userId: user.id, eventId, status },
+    await tx.signup.upsert({
+      where: { userId_eventId: { userId: user.id, eventId } },
+      update: { status },
+      create: { userId: user.id, eventId, status },
+    });
   });
 
   refreshEventViews(eventId);

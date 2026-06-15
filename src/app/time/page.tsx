@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 import { HOUR_STATUS_BADGE } from "@/lib/events";
 import { formatDate, formatDuration, hourLogMinutes } from "@/lib/format";
 import { clockIn, clockOut, requestTaskHours } from "./actions";
@@ -8,14 +9,7 @@ import { clockIn, clockOut, requestTaskHours } from "./actions";
 // Time (/time): live clock in/out for events + requesting hours for tasks.
 export default async function TimePage() {
   const { user } = await getCurrentUser();
-  if (!user) {
-    return (
-      <div className="page">
-        <h1>Time</h1>
-        <div className="empty">No user in session.</div>
-      </div>
-    );
-  }
+  if (!user) redirect("/login");
 
   const [signups, logs] = await Promise.all([
     prisma.signup.findMany({

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/demo-session";
+import { getCurrentUser } from "@/lib/session";
 import { HOUR_STATUS_BADGE } from "@/lib/events";
 import { formatDate, formatDuration, hourLogMinutes } from "@/lib/format";
 import { approveHourLog, rejectHourLog } from "../time/actions";

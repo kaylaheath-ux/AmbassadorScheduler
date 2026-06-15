@@ -1,50 +1,21 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  CalendarDays,
-  Calendar,
-  CalendarCheck,
-  AlarmClock,
-  ClipboardCheck,
-  BarChart3,
-  Users,
-  Mail,
-} from "lucide-react";
-import type { Role } from "@/lib/demo-auth";
-import { useDemoAuth } from "./DemoAuthProvider";
-import RoleSwitcher from "./RoleSwitcher";
+import { LogOut } from "lucide-react";
+import type { User } from "@/generated/prisma/client";
+import type { Role } from "@/lib/session";
+import { signOut } from "@/app/auth/actions";
+import SidebarNav from "./SidebarNav";
 import styles from "./Sidebar.module.css";
 
-// Nav items. `roles` (optional) restricts an item to certain roles; omit it to
-// show the item to everyone. Icons are the closest lucide equivalents.
-const NAV_ITEMS: {
-  label: string;
-  href: string;
-  Icon: typeof BarChart3;
-  roles?: Role[];
-}[] = [
-  { label: "Dashboard", href: "/", Icon: LayoutDashboard },
-  { label: "Events", href: "/events", Icon: CalendarDays },
-  { label: "Calendar", href: "/calendar", Icon: Calendar },
-  { label: "My Shifts", href: "/my-shifts", Icon: CalendarCheck, roles: ["AMBASSADOR"] },
-  { label: "Time", href: "/time", Icon: AlarmClock, roles: ["AMBASSADOR"] },
-  { label: "Approvals", href: "/approvals", Icon: ClipboardCheck, roles: ["COORDINATOR"] },
-  { label: "Reports", href: "/reports", Icon: BarChart3, roles: ["COORDINATOR"] },
-  { label: "Directory", href: "/directory", Icon: Users },
-  { label: "Messages", href: "/messages", Icon: Mail },
-];
-
-export default function Sidebar() {
-  const pathname = usePathname();
-  const { role } = useDemoAuth();
-  const navItems = NAV_ITEMS.filter(
-    (item) => !item.roles || item.roles.includes(role),
-  );
-
+// App rail. Server Component: receives the current user/role from the layout and
+// shows the nav + an account block (name + Log out, or a Log in link).
+export default function Sidebar({
+  user,
+  role,
+}: {
+  user: User | null;
+  role: Role | null;
+}) {
   return (
     <aside className={styles.sidebar}>
       <Image
@@ -56,28 +27,27 @@ export default function Sidebar() {
         priority
       />
 
-      <nav className={styles.nav}>
-        {navItems.map(({ label, href, Icon }) => {
-          // Highlight on the exact route and any nested route (e.g. Directory
-          // stays active on /directory/kaheath). The "/" Dashboard only matches
-          // exactly, so it doesn't light up for every page.
-          const isActive =
-            pathname === href ||
-            (href !== "/" && pathname.startsWith(`${href}/`));
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`${styles.navLink} ${isActive ? styles.active : ""}`}
-            >
-              <Icon size={24} strokeWidth={2} aria-hidden />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
+      {user && <SidebarNav role={role} />}
 
-      <RoleSwitcher />
+      <div className={styles.account}>
+        {user ? (
+          <form action={signOut} className={styles.accountButton}>
+            <span>
+              {user.name}
+              <span className={styles.roleName}>
+                {role === "COORDINATOR" ? "Coordinator" : "Ambassador"}
+              </span>
+            </span>
+            <button type="submit" className={styles.logout} aria-label="Log out">
+              <LogOut size={20} strokeWidth={2} aria-hidden />
+            </button>
+          </form>
+        ) : (
+          <Link href="/login" className={styles.accountButton}>
+            Log in
+          </Link>
+        )}
+      </div>
     </aside>
   );
 }

@@ -12,8 +12,7 @@ There are two roles:
 - **Coordinator** — creates/edits events, reviews and approves submitted hours,
   posts announcements, and sees program-wide reports.
 
-> **Auth is in demo mode.** Instead of real login, you pick a role with the
-> switcher in the sidebar. See [Demo mode](#demo-mode) below.
+> Sign-in is passwordless (magic link). See [Authentication](#authentication) below.
 
 ## Tech stack
 
@@ -21,7 +20,8 @@ There are two roles:
   server actions)
 - **[Prisma 7](https://www.prisma.io)** ORM over **PostgreSQL** (hosted on
   [Supabase](https://supabase.com))
-- **[Zod](https://zod.dev)** for input validation on event create/edit
+- **[Supabase Auth](https://supabase.com/docs/guides/auth)** — passwordless magic-link login
+- **[Zod](https://zod.dev)** for input validation on event/user create/edit
 - **[lucide-react](https://lucide.dev)** icons
 - TypeScript throughout
 
@@ -43,18 +43,19 @@ npm install
 
 ### 2. Configure environment
 
-Create a `.env` file in the project root with two connection strings:
+Copy `.env.example` to `.env` and fill in the values:
 
 ```bash
-# Pooled connection used by the app at runtime
-DATABASE_URL="postgresql://...:6543/postgres?pgbouncer=true"
-# Direct (session-mode) connection used by the Prisma CLI for migrations/seed
-DIRECT_URL="postgresql://...:5432/postgres"
+cp .env.example .env
 ```
 
-On Supabase, `DATABASE_URL` is the pgbouncer pooler (port 6543) and `DIRECT_URL`
-is the session-mode connection (port 5432). The CLI config in
-`prisma.config.ts` reads `DIRECT_URL`.
+- `DATABASE_URL` / `DIRECT_URL` — Supabase Postgres. `DATABASE_URL` is the
+  pgbouncer pooler (port 6543, used at runtime); `DIRECT_URL` is the session-mode
+  connection (port 5432, used by the Prisma CLI — `prisma.config.ts` reads it).
+- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — from the Supabase
+  dashboard (Project Settings → API). In Supabase **Auth → URL Configuration**,
+  add `http://localhost:3000/auth/callback` (and your deployed URL) as a redirect
+  URL, and make sure the email/magic-link provider is enabled.
 
 ### 3. Set up the database
 
@@ -69,28 +70,25 @@ npm run db:seed             # load demo users, events, signups, hours
 npm run dev
 ```
 
-Open <http://localhost:3000>. Use the role switcher at the bottom of the sidebar
-to flip between Ambassador and Coordinator.
+Open <http://localhost:3000>. You'll be redirected to `/login` — sign in with a
+seeded user's email (e.g. `pcoord@ncsu.edu` for a coordinator, `kaheath@ncsu.edu`
+for an ambassador) to get the magic link.
 
-## Demo mode
+## Authentication
 
-There is no real authentication yet. The selected role is stored in a `demo-role`
-cookie and maps to a seeded persona:
+Sign-in is passwordless via **Supabase Auth** magic links:
 
-| Role        | Persona              |
-| ----------- | -------------------- |
-| Ambassador  | Kayla Heath          |
-| Coordinator | Dr. Pat Coordinator  |
+1. Enter your email on `/login` → Supabase emails a one-time link.
+2. The link returns to `/auth/callback`, which exchanges it for a session cookie.
+3. `middleware.ts` refreshes that session on every request.
 
-- The cookie is read **server-side** (`src/lib/demo-session.ts`) so the first
-  render is correct, and **client-side** (`src/components/DemoAuthProvider.tsx`)
-  so switching is instant.
-- Server actions and coordinator-only pages re-check the role before doing
-  anything; ambassadors are redirected away from `/events/new`, `/approvals`,
-  and `/reports`.
-
-This is intentionally a stand-in. Replacing it with real `@ncsu.edu` SSO is
-tracked in `TODO.md`.
+Authorization is by **role**, resolved server-side: `getCurrentUser()`
+(`src/lib/session.ts`) maps the authenticated email to a `User` row and reads its
+`role`. An authenticated email with **no `User` row** is signed in but has no
+access — every role guard rejects it (so logins are effectively allow-listed to
+seeded/known users). Coordinator-only pages (`/events/new`, `/events/[id]/edit`,
+`/approvals`, `/reports`, user management) and all mutating server actions
+re-check the role before doing anything.
 
 ## Features by page
 
@@ -106,9 +104,12 @@ tracked in `TODO.md`.
 | `/time`               | Ambassador  | Clock in/out, request task hours, hours history                      |
 | `/approvals`          | Coordinator | Approve/reject submitted hours                                       |
 | `/reports`            | Coordinator | Approved hours per ambassador + event coverage                       |
-| `/directory`          | Both        | List of ambassadors                                                  |
-| `/directory/[id]`     | Both        | Ambassador profile                                                   |
+| `/directory`          | Both        | List of ambassadors; coordinator "New user"                          |
+| `/directory/[id]`     | Both        | User profile; coordinator edit/delete                                |
+| `/directory/new`      | Coordinator | Add a user (Zod-validated)                                           |
+| `/directory/[id]/edit`| Coordinator | Edit a user (Zod-validated)                                          |
 | `/messages`           | Both        | Announcements feed; coordinators post (audience-targeted)            |
+| `/login`              | Public      | Magic-link sign-in                                                   |
 
 ### How hours work
 
@@ -133,28 +134,86 @@ Defined in `prisma/schema.prisma`:
 - **Announcement** — coordinator post with an audience (ALL / AMBASSADOR /
   COORDINATOR).
 
+```mermaid
+erDiagram
+  User ||--o{ Signup : has
+  Event ||--o{ Signup : has
+  User ||--o{ HourLog : logs
+  Event |o--o{ HourLog : "credited to"
+  User ||--o{ Event : creates
+  User ||--o{ Announcement : posts
+
+  User {
+    string id PK "unity id"
+    string name
+    string email UK
+    Role role "AMBASSADOR | COORDINATOR"
+    string phone
+  }
+  Event {
+    string id PK
+    string title
+    EventType type
+    string location
+    datetime startsAt
+    datetime endsAt
+    int capacity
+    string createdById FK
+  }
+  Signup {
+    string id PK
+    string userId FK
+    string eventId FK
+    SignupStatus status "CONFIRMED | WAITLISTED | CANCELLED"
+    datetime createdAt
+  }
+  HourLog {
+    string id PK
+    string userId FK
+    string eventId FK "null for tasks"
+    string description "for task hours"
+    datetime checkIn
+    datetime checkOut
+    int minutes "for task hours"
+    HourLogStatus status "PENDING | APPROVED | REJECTED"
+  }
+  Announcement {
+    string id PK
+    string authorId FK
+    string body
+    string audience
+    datetime createdAt
+  }
+```
+
 ## Project structure
 
 ```
+middleware.ts            # refreshes the Supabase auth session each request
 prisma/
   schema.prisma          # data model
   migrations/            # SQL migration history
   seed.ts                # demo data (npm run db:seed)
 src/
   app/
-    layout.tsx           # root shell: reads role cookie, wraps app in providers
+    layout.tsx           # root shell: resolves current user, renders sidebar
     page.tsx             # dashboard (role-aware)
+    login/page.tsx       # magic-link sign-in
+    auth/callback/route.ts  # exchanges the magic link for a session
+    auth/actions.ts      # signOut server action
     <feature>/page.tsx   # one folder per route
     <feature>/actions.ts # "use server" mutations for that feature
     events/schema.ts     # Zod schema for event create/edit
   components/
-    Sidebar.tsx          # nav + role gating
-    DemoAuthProvider.tsx / RoleSwitcher.tsx  # client-side demo role state + switcher
-    EventForm.tsx        # shared create/edit form (useActionState + Zod errors)
+    Sidebar.tsx / SidebarNav.tsx  # nav (role-gated) + account/logout block
+    EventForm.tsx / UserForm.tsx  # shared create/edit forms (useActionState + Zod)
+    ConfirmSubmit.tsx    # submit button with a confirm() guard
   lib/
     prisma.ts            # singleton Prisma client
-    demo-auth.ts         # role types + personas
-    demo-session.ts      # server-side "current user" from the cookie
+    session.ts           # getCurrentUser(): Supabase session → Prisma User + role
+    supabase/server.ts   # server Supabase client (cookies)
+    supabase/client.ts   # browser Supabase client
+    schemas/user.ts      # Zod schema for user create/edit
     events.ts            # event-type labels/values + badge helpers
     format.ts            # date/time + duration formatting (Eastern time)
 ```
@@ -178,6 +237,5 @@ Useful Prisma commands: `npx prisma migrate dev` (create a migration in dev),
 
 ## Roadmap
 
-Planned work and the demo-mode → SSO swap are tracked in
-[`TODO.md`](./TODO.md). A learning-oriented reading path through the codebase is
-in [`REVIEW_GUIDE.md`](./REVIEW_GUIDE.md).
+Remaining work is tracked in the project's GitHub issues. A learning-oriented
+reading path through the codebase is in [`REVIEW_GUIDE.md`](./REVIEW_GUIDE.md).
